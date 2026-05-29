@@ -1,6 +1,6 @@
 # Market Research Intelligence Assistant
 
-A web application that ingests competitor names / topics and source URLs, runs a hybrid AI pipeline (deterministic for URLs, agentic for topics), and produces a structured market-intelligence report with per-insight source citations, an independent LLM-as-judge verdict, PDF export, and change detection on re-runs. **All pipeline LLM phases use GPT-5** served through Azure OpenAI (`gpt-5` deployments).
+A web application that ingests competitor names / topics and source URLs, runs a hybrid AI pipeline (deterministic for URLs, agentic for topics), and produces a structured market-intelligence report with per-insight source citations, an independent LLM-as-judge verdict, PDF export, and change detection on re-runs. **All pipeline LLM phases use GPT-5-mini** served through Azure OpenAI (`gpt-5-mini` deployments).
 
 ---
 
@@ -12,7 +12,7 @@ Market and competitive research is slow, fragmented, and hard to trust: analysts
 
 1. **Hybrid pipeline** — user URLs are fetched and extracted deterministically; topics trigger an agentic Tavily research loop.
 2. **Structured synthesis** — a Pydantic AI synth agent outputs a typed `Report` (headline, executive summary, themes, competitors, metrics).
-3. **Independent judge** — a separate Azure OpenAI GPT-5 deployment scores each insight (`verified` / `unsupported` / `contradicted`).
+3. **Independent judge** — a separate Azure OpenAI GPT-5-mini deployment scores each insight (`verified` / `unsupported` / `contradicted`).
 4. **Change detection** — re-runs with `prior_run_id` hash claims and tag insights as NEW / unchanged / removed.
 5. **Export** — completed reports download as PDF via WeasyPrint.
 
@@ -20,14 +20,14 @@ See [docs/design.md](docs/design.md) and [docs/prompts.md](docs/prompts.md) for 
 
 ## AI agents
 
-All agents are built with [Pydantic AI](https://ai.pydantic.dev/) — structured JSON output, optional tools. They run on **GPT-5** via Azure OpenAI`.
+All agents are built with [Pydantic AI](https://ai.pydantic.dev/) — structured JSON output, optional tools. They run on **GPT-5-mini** via Azure OpenAI.
 
 | Agent | When it runs | Input → output |
 |-------|----------------|----------------|
 | **Extract** | After each URL or research source is fetched | One source’s text → list of grounded `Fact` objects (`claim`, `evidence`, `confidence`, `source_id`) |
 | **Research** | When the user supplies topics (one parallel task per keyword) | Topics + Tavily `search` tool loop → persisted sources; agent decides query angles until coverage caps or iteration limit |
 | **Synth** | Once all facts are merged | All `Fact`s + topics → structured `Report` (headline, metrics, findings, themes, competitors, optional sections) |
-| **Judge** | After synthesis (separate GPT-5 deployment) | One insight + cited source excerpts → `verified` / `unsupported` / `contradicted` + rationale |
+| **Judge** | After synthesis (separate GPT-5-mini deployment) | One insight + cited source excerpts → `verified` / `unsupported` / `contradicted` + rationale |
 
 **Not LLM agents:** URL fetch (httpx + trafilatura + SSRF checks), article hydration for Tavily hits, balanced source selection, dedupe, and claim-hash change detection run as deterministic Python in the pipeline orchestrator.
 
@@ -39,7 +39,7 @@ Flow: **fetch → extract → [research → hydrate → extract] → synth → j
 |-------|------------|
 | Frontend | React 18, Vite, TypeScript, Tailwind |
 | Backend | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic |
-| AI | Pydantic AI agents; **GPT-5** via Azure OpenAI (main + judge deployments) |
+| AI | Pydantic AI agents; **GPT-5-mini** via Azure OpenAI (main + judge deployments) |
 | Search | Tavily |
 | Fetch / extract | httpx, trafilatura |
 | PDF | Jinja2 + WeasyPrint |
@@ -95,7 +95,7 @@ Open http://localhost:5173.
 ## AI tools, models, and libraries
 
 - [Pydantic AI](https://ai.pydantic.dev/) — agent framework with structured output and tool use
-- **GPT-5 (Azure OpenAI)** — extract, research, coverage queries, synth (`AZURE_OPENAI_MAIN_DEPLOYMENT`); judge (`AZURE_OPENAI_JUDGE_DEPLOYMENT`). Defaults in `.env.example`: `gpt-5-mini`; point `MAIN` at `gpt-5` for the full model.
+- **GPT-5-mini (Azure OpenAI)** — extract, research, coverage queries, synth (`AZURE_OPENAI_MAIN_DEPLOYMENT`); judge (`AZURE_OPENAI_JUDGE_DEPLOYMENT`). Both default to `gpt-5-mini` in `.env.example`.
 - [Tavily](https://tavily.com/) — web search in the research agent
 - [Trafilatura](https://trafilatura.readthedocs.io/) — article extraction
 - [WeasyPrint](https://weasyprint.org/) — PDF report export

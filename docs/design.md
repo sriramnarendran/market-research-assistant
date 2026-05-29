@@ -2,7 +2,7 @@
 
 Full system design for the three-phase build (MVP → auth/observability → polish/deploy). Phase 3 complete.
 
-**LLM:** All agent phases (extract, research, coverage queries, synthesis, judge) call **GPT-5** through Azure OpenAI deployments — configured via `AZURE_OPENAI_MAIN_DEPLOYMENT` and `AZURE_OPENAI_JUDGE_DEPLOYMENT`.
+**LLM:** All agent phases (extract, research, coverage queries, synthesis, judge) call **GPT-5-mini** through Azure OpenAI deployments — configured via `AZURE_OPENAI_MAIN_DEPLOYMENT` and `AZURE_OPENAI_JUDGE_DEPLOYMENT`.
 
 ## Quick reference
 
@@ -27,7 +27,7 @@ flowchart TB
     end
 
     subgraph External["External services"]
-        AOAI["Azure OpenAI · GPT-5<br/>MAIN: extract · research · synth<br/>JUDGE: per-insight verification"]
+        AOAI["Azure OpenAI · GPT-5-mini<br/>MAIN: extract · research · synth<br/>JUDGE: per-insight verification"]
         Tavily["Tavily<br/>web search"]
         Web["Publisher sites<br/>user URLs + research hits"]
     end
@@ -53,7 +53,7 @@ flowchart TB
 | **Frontend** | React + Vite + TypeScript → Azure Static Web Apps; `/api/*` proxied to backend. |
 | **Backend** | FastAPI + in-process `BackgroundTasks` pipeline → Azure Container Apps (Linux container from ACR). |
 | **AI framework** | Pydantic AI (structured output, tools, `@output_validator`). |
-| **LLM** | **GPT-5** via Azure OpenAI — `AZURE_OPENAI_MAIN_DEPLOYMENT` (extract / research / synth / coverage queries), `AZURE_OPENAI_JUDGE_DEPLOYMENT` (judge). |
+| **LLM** | **GPT-5-mini** via Azure OpenAI — `AZURE_OPENAI_MAIN_DEPLOYMENT` (extract / research / synth / coverage queries), `AZURE_OPENAI_JUDGE_DEPLOYMENT` (judge). |
 | **Search** | Tavily inside the research agent `search` tool and coverage query bootstrap. |
 | **Database** | Postgres 16 — docker-compose locally; Supabase (session pooler) in production. |
 | **Auth** | Argon2id + JWT (httpOnly cookies); rate limits on login and run creation. |

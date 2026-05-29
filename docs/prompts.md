@@ -8,7 +8,7 @@ The framework owns three things that we'd otherwise hand-roll:
 
 - **Tool schemas** generated from Python type hints + docstrings (`@agent.tool`).
 - **Structured output** via `output_type=SomePydanticModel` — the model is forced to emit valid JSON matching the model, the framework validates it, retries on shape mismatches.
-- **Provider abstraction** — Azure Foundry Claude and Azure OpenAI GPT-5 hide behind the same `Agent` interface.
+- **Provider abstraction** — Azure Foundry Claude and Azure OpenAI GPT-5-mini hide behind the same `Agent` interface.
 
 ## Per-phase notes
 
