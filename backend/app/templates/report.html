@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Market Research Report</title>
+  <style>{{ css }}</style>
+</head>
+<body>
+
+{% macro cite_list(citations) -%}
+  {% if citations %}
+  <span class="citations">
+    Sources:
+    {% for cid in citations %}
+      <span class="cite">[{{ source_index[cid|string] }}]</span>{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro insight_badges(insight) -%}
+  {% if insight.diff_tag == 'new' %}<span class="badge badge-new">NEW</span>{% endif %}
+  {% if insight.diff_tag == 'removed' %}<span class="badge badge-removed">REMOVED</span>{% endif %}
+  {% if insight.judge_verdict == 'verified' %}<span class="badge badge-verified">Verified</span>{% endif %}
+  {% if insight.judge_verdict == 'unsupported' %}<span class="badge badge-unsupported">Unsupported</span>{% endif %}
+  {% if insight.judge_verdict == 'contradicted' %}<span class="badge badge-contradicted">Contradicted</span>{% endif %}
+{%- endmacro %}
+
+{% macro insight_block(insight, ordinal=none) -%}
+<div class="insight">
+  <p class="insight-statement">
+    {% if ordinal %}<strong>{{ ordinal }}.</strong> {% endif %}
+    {{ insight.statement }}
+  </p>
+  <div class="insight-meta">
+    {{ insight_badges(insight) }}
+    {{ cite_list(insight.citations) }}
+  </div>
+  {% if insight.judge_rationale %}
+  <p class="insight-meta"><em>Judge:</em> {{ insight.judge_rationale }}</p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+<div class="meta">
+  {% if run_id %}<div class="meta-row">Run ID: {{ run_id }}</div>{% endif %}
+  {% if input_topics %}<div class="meta-row">Topics: {{ input_topics | join(', ') }}</div>{% endif %}
+  <div class="meta-row">
+    {{ report.themes | length }} themes ·
+    {{ report.competitors | length }} competitor groupings ·
+    {{ report.source_count }} sources
+  </div>
+  <div class="meta-row">Generated {{ report.generated_at.strftime('%Y-%m-%d %H:%M UTC') }}</div>
+</div>
+
+{% if report.headline %}
+<div class="headline-box">
+  <div class="headline-label">Headline</div>
+  <h1>{{ report.headline }}</h1>
+</div>
+{% endif %}
+
+{% if report.executive_summary %}
+<h2>Executive summary</h2>
+<p class="summary">{{ report.executive_summary }}</p>
+{% endif %}
+
+{% if report.key_metrics %}
+<h2>Key metrics</h2>
+<div class="metrics-grid">
+  {% for m in report.key_metrics %}
+  <div class="metric-card">
+    <div class="metric-label">{{ m.label }}</div>
+    <div class="metric-value">{{ m.value }}</div>
+    <div class="metric-context">{{ m.context }}</div>
+    <div style="margin-top:0.4em">{{ cite_list(m.citations) }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if report.competitive_strategic_synthesis %}
+<h2>Competitive strategic synthesis</h2>
+<p class="summary">{{ report.competitive_strategic_synthesis.summary }}</p>
+{% if report.competitive_strategic_synthesis.dynamics %}
+<h3>Competitive dynamics</h3>
+{% for ins in report.competitive_strategic_synthesis.dynamics %}
+  {{ insight_block(ins) }}
+{% endfor %}
+{% endif %}
+{% if report.competitive_strategic_synthesis.implications %}
+<h3>Strategic signals</h3>
+{% for ins in report.competitive_strategic_synthesis.implications %}
+  {{ insight_block(ins) }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if report.key_findings %}
+<h2>Key findings</h2>
+{% for ins in report.key_findings %}
+  {{ insight_block(ins, loop.index) }}
+{% endfor %}
+{% endif %}
+
+{% if report.market_trends %}
+<h2>Market trends</h2>
+<p class="summary">{{ report.market_trends.summary }}</p>
+{% for ins in report.market_trends.insights %}
+  {{ insight_block(ins, loop.index) }}
+{% endfor %}
+{% endif %}
+
+{% if report.consumer_behavior %}
+<h2>Consumer behavior</h2>
+<p class="summary">{{ report.consumer_behavior.summary }}</p>
+{% for ins in report.consumer_behavior.insights %}
+  {{ insight_block(ins, loop.index) }}
+{% endfor %}
+{% endif %}
+
+{% if report.opportunities or report.risks %}
+<div class="section-break"></div>
+{% if report.opportunities %}
+<h2>Opportunities</h2>
+{% for ins in report.opportunities %}
+  {{ insight_block(ins) }}
+{% endfor %}
+{% endif %}
+{% if report.risks %}
+<h2>Risks</h2>
+{% for ins in report.risks %}
+  {{ insight_block(ins) }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if report.themes %}
+<div class="section-break"></div>
+<h2>Themes</h2>
+{% for theme in report.themes %}
+<div class="theme-block">
+  <h3>{{ theme.title }}</h3>
+  {% if theme.summary %}<p class="theme-summary">{{ theme.summary }}</p>{% endif %}
+  {% for ins in theme.insights %}
+    {{ insight_block(ins) }}
+  {% endfor %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if report.competitors %}
+<h2>Competitor activity</h2>
+{% for ca in report.competitors %}
+<div class="competitor-block">
+  <h3>{{ ca.competitor }}</h3>
+  {% for ins in ca.insights %}
+    {{ insight_block(ins) }}
+  {% endfor %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if report.removed_insights %}
+<h2>Removed since last run</h2>
+{% for ins in report.removed_insights %}
+<div class="removed-item">
+  <span class="badge badge-removed">REMOVED</span>
+  {{ ins.statement }}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if report.outlook %}
+<div class="outlook-box">
+  <h3 style="margin-top:0">Outlook</h3>
+  <p style="margin-bottom:0">{{ report.outlook }}</p>
+</div>
+{% endif %}
+
+<div class="footer-note">
+  Market Research Intelligence Assistant — report exported as PDF.
+  Judge verdicts are advisory; verify critical claims against primary sources.
+</div>
+
+</body>
+</html>

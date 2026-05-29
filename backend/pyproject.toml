@@ -1,0 +1,120 @@
+[project]
+name = "market-research-backend"
+version = "0.1.0"
+description = "Market Research Intelligence Assistant — FastAPI backend"
+requires-python = ">=3.12"
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0,<0.116",
+    "uvicorn[standard]>=0.32.0,<0.33",
+    "python-multipart>=0.0.20,<0.1",
+
+    # Settings / validation
+    "pydantic>=2.10.0,<3",
+    "pydantic-settings>=2.6.0,<3",
+
+    # AI framework — 1.x API (Agent uses output_type / @agent.output_validator / result.output)
+    "pydantic-ai-slim[openai]>=1.100.0,<2",
+
+    # Tokenizer for the fetch-path token cap (no LLM call required)
+    "tiktoken>=0.11.0,<1",
+
+    # Web search
+    "tavily-python>=0.5.0,<0.6",
+
+    # URL fetch + extraction
+    "httpx>=0.27.0,<0.28",
+    "trafilatura>=1.12.0,<2",
+    "beautifulsoup4>=4.12.0,<5",
+    "lxml>=5.3.0,<6",
+
+    # Database
+    "sqlalchemy[asyncio]>=2.0.36,<3",
+    "asyncpg>=0.30.0,<0.31",
+    "alembic>=1.14.0,<2",
+    "greenlet>=3.1.0,<4",
+
+    # Logging
+    "structlog>=24.4.0,<25",
+
+    # Auth + rate limiting (Phase 2)
+    "argon2-cffi>=23.1.0,<24",
+    "pyjwt>=2.10.0,<3",
+    "slowapi>=0.1.9,<0.2",
+
+    # PDF export (Phase 3)
+    "jinja2>=3.1.0,<4",
+    "weasyprint>=63.0,<64",
+
+    # Utilities
+    "tenacity>=9.0.0,<10",
+    "anyio>=4.6.0,<5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0,<9",
+    "pytest-asyncio>=0.24.0,<0.25",
+    "pytest-cov>=6.0.0,<7",
+    "httpx>=0.27.0,<0.28",
+    "ruff>=0.8.0,<0.9",
+    "mypy>=1.13.0,<2",
+    "types-beautifulsoup4>=4.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "S",   # flake8-bandit (security)
+    "N",   # pep8-naming
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line too long (formatter handles)
+    "S101",  # assert (we use it in tests)
+    "B008",  # function call in default arg (FastAPI Depends pattern)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S311"]
+"alembic/**" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["alembic/versions"]
+
+[[tool.mypy.overrides]]
+module = ["trafilatura.*", "tavily.*", "weasyprint.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: integration tests (may hit real LLM endpoints if LLM_MODE=live)",
+    "unit: fast unit tests",
+]
